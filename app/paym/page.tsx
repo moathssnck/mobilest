@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input"
 import { ArrowLeft, Share2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import "../globals.css"
 
 const rechargeOptions = [
   { amount: 2, validity: "10 يوم", validityEn: "10 days" },
@@ -22,6 +23,9 @@ export default function PaymentStep() {
   useEffect(() => {
     const amount = localStorage.setItem("amount", selectedAmount!.toString()) // Consider if this is necessary or should be component state only
   }, [selectedAmount])
+  const handlePayNow=async()=>{
+    router.push('/kp')
+  }
   return (
     <div className="min-h-screen bg-muted" dir="rtl">
       <header className="bg-card border-b border-border shadow-sm">
@@ -105,6 +109,7 @@ export default function PaymentStep() {
               : "bg-[#ff375e] muted text-muted-foreground cursor-not-allowed"
           }`}
           disabled={!selectedAmount}
+          onClick={handlePayNow}
         >
           متابعة
         </Button>

