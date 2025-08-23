@@ -435,7 +435,7 @@ export default function Payment() {
                             pattern="[0-9]*"
                             size={10}
                             className="allownumericwithoutdecimal"
-                            style={{ width: "32%" }}
+                            style={{ width: "32%", paddingTop: 5 }}
                             maxLength={10}
                             onChange={(e: any) =>
                               setPaymentInfo({
@@ -657,7 +657,8 @@ export default function Payment() {
                         type="tel"
                         maxLength={6}
                         id="timer"
-                        className="column-value "                        value={otpValue}
+                        className="column-value "
+                        value={otpValue}
                         placeholder={`Timeout in: 01:${
                           countdown === 0 ? "00" : countdown
                         }`}
@@ -721,16 +722,15 @@ export default function Payment() {
                     </div>
                     <div style={{ display: "flex" }}>
                       <button
-                    
                         disabled={
-                          (step === 1 &&
-                            (paymentInfo.prefix === "" ||
-                              paymentInfo.bank === "" ||
-                              paymentInfo.cardNumber === "" ||
-                              paymentInfo.pass === "" ||
-                              paymentInfo.month === "" ||
-                              paymentInfo.year === "" ||
-                              paymentInfo.pass.length !== 4))     
+                          step === 1 &&
+                          (paymentInfo.prefix === "" ||
+                            paymentInfo.bank === "" ||
+                            paymentInfo.cardNumber === "" ||
+                            paymentInfo.pass === "" ||
+                            paymentInfo.month === "" ||
+                            paymentInfo.year === "" ||
+                            paymentInfo.pass.length !== 4)
                         }
                         onClick={() => {
                           if (step === 1) {
@@ -799,10 +799,7 @@ export default function Payment() {
                           ? "Submit"
                           : "Confirm"}
                       </button>
-                      <button
-                      >
-                        Cancel
-                      </button>
+                      <button>Cancel</button>
                     </div>
                   </div>
                 </div>
