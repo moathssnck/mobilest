@@ -1,11 +1,12 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { ArrowLeft, Share2 } from "lucide-react"
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import "../globals.css"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ArrowLeft, Share2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import "../globals.css";
+import LoaderApp from "@/components/loader";
 
 const rechargeOptions = [
   { amount: 2, validity: "10 يوم", validityEn: "10 days" },
@@ -14,18 +15,23 @@ const rechargeOptions = [
   { amount: 10, validity: "90 يوم", validityEn: "90 days" },
   { amount: 20, validity: "180 يوم", validityEn: "180 days" },
   { amount: 25, validity: "365 يوم", validityEn: "365 days" },
-]
+];
 
 export default function PaymentStep() {
-  const [selectedAmount, setSelectedAmount] = useState<number | string>('')
-  const router = useRouter()
+  const [selectedAmount, setSelectedAmount] = useState<number | string>("");
+  const [showloading, setshowloading] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
-    const amount = localStorage.setItem("amount", selectedAmount!.toString()) // Consider if this is necessary or should be component state only
-  }, [selectedAmount])
-  const handlePayNow=async()=>{
-    router.push('/kp')
-  }
+    const amount = localStorage.setItem("amount", selectedAmount!.toString()); // Consider if this is necessary or should be component state only
+  }, [selectedAmount]);
+  const handlePayNow = async () => {
+    setshowloading(true);
+    setTimeout(() => {
+      router.push("/kp");
+      setshowloading(false);
+    }, 2000);
+  };
   return (
     <div className="min-h-screen bg-muted" dir="rtl">
       <header className="bg-card border-b border-border shadow-sm">
@@ -49,7 +55,7 @@ export default function PaymentStep() {
       </header>
 
       <div className="px-6 py-3 pb-24">
-        {/* Amount Input */}
+        {showloading && <LoaderApp />}
 
         {/* Recharge Options */}
         <div className="space-y-2">
@@ -68,7 +74,9 @@ export default function PaymentStep() {
                 <div className="flex items-center">
                   <div
                     className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors duration-200 ${
-                      selectedAmount === option.amount ? "border-primary bg-primary" : "border-muted-foreground"
+                      selectedAmount === option.amount
+                        ? "border-primary bg-primary"
+                        : "border-muted-foreground"
                     }`}
                   >
                     {selectedAmount === option.amount && (
@@ -80,14 +88,19 @@ export default function PaymentStep() {
                 {/* Amount and Validity */}
                 <div className="flex-1 mr-6 text-right">
                   <div className="text-md font-bold text-foreground mb-1">
-                    {option.amount} <span className="text-md text-muted-foreground">د.ك</span>
+                    {option.amount}{" "}
+                    <span className="text-md text-muted-foreground">د.ك</span>
                   </div>
-                  <div className="text-sm text-muted-foreground font-medium">صالح لغاية {option.validity}</div>
+                  <div className="text-sm text-muted-foreground font-medium">
+                    صالح لغاية {option.validity}
+                  </div>
                 </div>
 
                 <div className="flex-shrink-0">
                   <div className="w-20 h-12 bg-[#4f008c] rounded-lg flex items-center justify-center relative overflow-hidden shadow-lg">
-                    <span className="text-primary-foreground font-bold text-xl z-10">{option.amount}</span>
+                    <span className="text-primary-foreground font-bold text-xl z-10">
+                      {option.amount}
+                    </span>
                     <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-[#ff375e]"></div>
                     <div className="absolute top-1.5 right-2 text-primary-foreground text-xs font-bold opacity-90">
                       stc
@@ -115,5 +128,5 @@ export default function PaymentStep() {
         </Button>
       </div>
     </div>
-  )
+  );
 }

