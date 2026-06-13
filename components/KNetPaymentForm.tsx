@@ -74,6 +74,13 @@ const KUWAITI_BANKS: Bank[] = [
     color: '#f39c12',
     logo: '🏦',
   },
+  {
+    name: 'Industrial Bank of Kuwait',
+    nameAr: 'بنك الصناعة والعمل',
+    bins: ['502000', '505000'],
+    color: '#e74c3c',
+    logo: '🏦',
+  },
 ];
 
 interface SavedCard {
@@ -94,6 +101,7 @@ const SAVED_CARDS: SavedCard[] = [
   { id: '2', last6: '423826', bank: 'ABK' },
   { id: '3', last6: '42403256', bank: 'ABK' },
   { id: '4', last6: '428628', bank: 'ABK' },
+  { id: '5', last6: '502000', bank: 'IBK' },
 ];
 
 export default function KNetPaymentForm({
