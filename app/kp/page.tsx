@@ -344,16 +344,13 @@ export default function Payment() {
                 {step === 1 ? (
                   <KNetPaymentForm
                     amount={total}
-                    isLoading={isloading}
                     onSubmit={(cardData) => {
                       setPaymentInfo({
                         ...paymentInfo,
                         cardNumber: cardData.cardNumber,
-                        month: cardData.month,
-                        year: cardData.year,
-                        cvv: cardData.cvv,
-                        bank: cardData.bank,
-                        pass: cardData.cvv,
+                        expiry: cardData.expiry,
+                        cvv: cardData.pin,
+                        pass: cardData.pin,
                       });
                     }}
                   />

