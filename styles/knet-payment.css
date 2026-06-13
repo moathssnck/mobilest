@@ -1,0 +1,171 @@
+:root {
+  --bg: #f3f5f7;
+  --card: #ffffff;
+  --accent: #2b6fb3;
+  --muted: #6b6b6b;
+  --field: #f8f9fb;
+  --shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+.knet-container {
+  max-width: 420px;
+  margin: 18px auto;
+  padding: 12px;
+  font-family: "Tajawal", "Segoe UI", system-ui, Arial, sans-serif;
+}
+
+.knet-banner {
+  height: 84px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #dbeefc;
+  margin-bottom: 14px;
+}
+
+.knet-banner img {
+  height: 74px;
+  object-fit: contain;
+}
+
+.knet-panel {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.knet-bank-head {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  border-bottom: 1px solid #eef2f5;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+}
+
+.knet-logo-wrap {
+  width: 120px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #f7fbff, #fff);
+}
+
+.knet-logo-wrap img {
+  max-height: 40px;
+  max-width: 100%;
+}
+
+.knet-bank-name {
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.knet-meta {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.knet-row {
+  background: var(--field);
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+.knet-row label {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.knet-row input,
+.knet-row select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #d7dbe0;
+  background: #fff;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.knet-two {
+  display: flex;
+  gap: 8px;
+}
+
+.knet-small {
+  width: 120px;
+}
+
+.knet-small .knet-row {
+  margin-bottom: 0;
+}
+
+.knet-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.knet-btn {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: 0;
+  background: #e8eef5;
+  color: #223;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.knet-btn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.knet-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.knet-btn.primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.knet-preview {
+  margin-top: 12px;
+}
+
+.knet-credit-card {
+  border-radius: 10px;
+  padding: 12px;
+  background: linear-gradient(180deg, #fff, #fbfdff);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.knet-muted-small {
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+  margin-top: 10px;
+}
+
+.knet-footer {
+  font-size: 12px;
+  color: #9aa0a6;
+  text-align: center;
+  margin-top: 16px;
+}

