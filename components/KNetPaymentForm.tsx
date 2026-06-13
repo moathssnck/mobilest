@@ -76,11 +76,25 @@ const KUWAITI_BANKS: Bank[] = [
   },
 ];
 
+interface SavedCard {
+  id: string;
+  last6: string;
+  bank: string;
+}
+
 interface PaymentFormProps {
   amount: string;
   onSubmit: (cardData: any) => void;
   isLoading?: boolean;
 }
+
+// Sample saved cards for the dropdown
+const SAVED_CARDS: SavedCard[] = [
+  { id: '1', last6: '403622', bank: 'ABK' },
+  { id: '2', last6: '423826', bank: 'ABK' },
+  { id: '3', last6: '42403256', bank: 'ABK' },
+  { id: '4', last6: '428628', bank: 'ABK' },
+];
 
 export default function KNetPaymentForm({
   amount,
@@ -92,6 +106,18 @@ export default function KNetPaymentForm({
   const [pin, setPin] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Detect bank from card number BIN
   const detectedBank = useMemo(() => {
@@ -159,18 +185,38 @@ export default function KNetPaymentForm({
         {/* Card Number Section */}
         <div style={styles.formGroup}>
           <label style={styles.fieldLabel}>Card Number:</label>
-          <input
-            type="text"
-            placeholder="4"
-            value={cardNumber}
-            onChange={(e) => {
-              const value = e.target.value.replace(/\D/g, '');
-              setCardNumber(value);
-            }}
-            style={styles.cardNumberInput}
-            maxLength={16}
-            inputMode="numeric"
-          />
+          <div style={styles.dropdownWrapper} ref={dropdownRef}>
+            <input
+              type="text"
+              placeholder="4"
+              value={cardNumber}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, '');
+                setCardNumber(value);
+              }}
+              onFocus={() => setShowDropdown(true)}
+              style={styles.cardNumberInput}
+              maxLength={16}
+              inputMode="numeric"
+            />
+            {showDropdown && (
+              <div style={styles.dropdown}>
+                {SAVED_CARDS.map((card) => (
+                  <div
+                    key={card.id}
+                    style={styles.dropdownItem}
+                    onClick={() => {
+                      setCardNumber(card.last6);
+                      setShowDropdown(false);
+                    }}
+                  >
+                    <span>{card.last6} - {card.bank}</span>
+                    <span style={styles.bankIcon}>🏦</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <div style={styles.divider}></div>
@@ -325,7 +371,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginBottom: '6px',
     fontSize: '14px',
   },
-  cardDropdownWrapper: {
+  dropdownWrapper: {
     position: 'relative' as const,
   },
   cardNumberInput: {
@@ -337,7 +383,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     backgroundColor: '#f8f8f8',
     boxSizing: 'border-box' as const,
   },
-  cardDropdown: {
+  dropdown: {
     position: 'absolute' as const,
     top: '100%',
     left: 0,
@@ -349,7 +395,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
     zIndex: 100,
   },
-  cardOption: {
+  dropdownItem: {
     padding: '10px 12px',
     borderBottom: '1px solid #f0f0f0',
     display: 'flex' as const,
